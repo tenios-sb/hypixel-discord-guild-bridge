@@ -56,7 +56,7 @@ module.exports = {
             } else if (parsedMessage.server === 'limbo') {
                 return;
             }
-        } catch (e) {}
+        } catch (e) { }
 
         // CONSOLE LOG
         if (!includesIgnored(msgString) && config.options.ingameChatConsoleLog) {
@@ -75,7 +75,7 @@ module.exports = {
             const { react } = require('../discord/messageCreate.js');
             try {
                 react(null, '⛔');
-            } catch (e) {}
+            } catch (e) { }
             return;
         }
         if ((msgString.startsWith('Guild >') || msgString.startsWith('Officer')) && msgString.includes(':')) {
@@ -87,18 +87,23 @@ module.exports = {
             const messageAuthor = splitMessage[2]?.includes('[') ? splitMessage[3]?.replace(':', '') : splitMessage[2]?.replace(':', '');
 
             // INGAME COMMANDS
-            if (sentMsg.trim().startsWith('!')) {
-                const cmd = sentMsg.trim().split(' ')[0].substring(1);
-                const command = minecraftClient?.commands?.get(cmd === 'nw' ? 'networth' : cmd);
-                if (command) {
-                    command.execute(discordClient, sentMsg, messageAuthor);
+            if (sentMsg.trim().startsWith(config.ingameCommands.trigger)) {
+                const cmd = sentMsg.trim().substring(config.ingameCommands.trigger.length).split(' ')[0].toLowerCase().replace("-", "");
+                for (let command of minecraftClient?.commands) {
+                    if (command.triggers(cmd)) {
+                        command.execute(sentMsg, messageAuthor)
+                            .catch(err => {
+                                minecraftClient.chat(`/gc @${messageAuthor} ${err}`);
+                            });
+                        break;
+                    }
                 }
             }
 
             if (splitMessage[2]?.includes(config.minecraft.ingameName) || splitMessage[3]?.includes(config.minecraft.ingameName)) {
                 try {
                     react(sentMsg, '✅');
-                } catch (e) {}
+                } catch (e) { }
 
                 if (!sentMsg.startsWith('@')) return;
             }
@@ -188,9 +193,8 @@ module.exports = {
                                         requirementsMet++;
                                         requirementsMetSkyblock++;
                                     }
-                                    requirementsDescription += `${stat.toUpperCase()}: ${slayerDescription.join('/')} ${
-                                        slayerRequirementsMet >= Object.keys(requirement).length ? '✔' : '✖'
-                                    } |`;
+                                    requirementsDescription += `${stat.toUpperCase()}: ${slayerDescription.join('/')} ${slayerRequirementsMet >= Object.keys(requirement).length ? '✔' : '✖'
+                                        } |`;
                                 } else {
                                     if (userRequirements[stat] >= requirement) {
                                         requirementsMet++;
@@ -214,7 +218,7 @@ module.exports = {
                             }
                             if (
                                 requirementsMet >=
-                                    (config.guildRequirement.minRequired || Object.keys(config.guildRequirement.requirements).length) ||
+                                (config.guildRequirement.minRequired || Object.keys(config.guildRequirement.requirements).length) ||
                                 (config.guildRequirement.acceptEitherSkyblockOrBedwars &&
                                     (requirementsMetBedwars >= totalBwStats ||
                                         requirementsMetSkyblock >= Object.keys(config.guildRequirement.requirements).length - totalBwStats))

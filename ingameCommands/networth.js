@@ -1,33 +1,26 @@
 const { getNetworth } = require('skyhelper-networth');
-const config = require('../config.json');
 const { getPlayer, numberformatter } = require('../helper/functions.js');
+const BaseCommand = require('./baseCommand.js');
 
-module.exports = {
-    name: 'networth',
-    execute: async (discordClient, message, messageAuthor) => {
-        if (config.ingameCommands.networth) {
-            let { 1: username, 2: profile } = message.split(' ');
+class NetworthCommand extends BaseCommand {
 
-            if (!username) username = messageAuthor;
+    constructor() {
+        super('networth');
+    }
 
-            const searchedPlayer = await getPlayer(username, profile).catch((err) => {
-                return minecraftClient.chat(`/gc @${messageAuthor} ${err}`);
-            });
+    execute = async (message, messageAuthor) => {
+        let { username, profile } = this.getArgs(message, messageAuthor);
 
-            const networth = await getNetworth(searchedPlayer.memberData, searchedPlayer.profileData?.banking?.balance || 0, { onlyNetworth: true });
+        const searchedPlayer = await getPlayer(username, profile);
 
-            if (networth.noInventory) {
-                return minecraftClient.chat(
-                    `/gc @${messageAuthor}${messageAuthor === username ? "'s" : ` ${username}'s`} inventory API is disabled.`
-                );
-            }
+        const networth = await getNetworth(searchedPlayer.memberData, searchedPlayer.profileData?.banking?.balance || 0, { onlyNetworth: true });
 
-            minecraftClient.chat(
-                `/gc @${messageAuthor}${messageAuthor === username ? "'s" : ` ${username}'s`} networth is ${numberformatter(
-                    networth.networth.toFixed(),
-                    3
-                )}`
-            );
+        if (networth.noInventory) {
+            return this.sendReply(`${username} disabled their inventory API.`);
         }
-    },
-};
+
+        this.sendReply(`${username} has a networth of ${numberformatter(networth.networth.toFixed(), 3)}`);
+    }
+}
+
+module.exports = new NetworthCommand();

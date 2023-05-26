@@ -1,10 +1,10 @@
-const { getPlayer, toFixed } = require('../helper/functions.js');
+const { getPlayer, addCommas } = require('../helper/functions.js');
 const BaseCommand = require('./baseCommand.js');
 
-class LevelCommand extends BaseCommand {
+class PeltCommand extends BaseCommand {
 
     constructor() {
-        super('level');
+        super('pelts');
     }
 
     execute = async (message, messageAuthor) => {
@@ -12,9 +12,10 @@ class LevelCommand extends BaseCommand {
 
         const searchedPlayer = await getPlayer(username, profile);
         const playerProfile = searchedPlayer.memberData;
+        const pelts = playerProfile?.trapper_quest?.pelt_count || 0;
 
-        this.sendReply(`${username} is SkyBlock level ${Number(toFixed((playerProfile.leveling?.experience || 0) / 100, 2))}.`);
+        this.sendReply(`${username} has ${addCommas(pelts)} pelts`);
     }
 }
 
-module.exports = new LevelCommand();
+module.exports = new PeltCommand();

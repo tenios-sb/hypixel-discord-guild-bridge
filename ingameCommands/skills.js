@@ -1,26 +1,27 @@
 const config = require('../config.json');
 const { getPlayer } = require('../helper/functions.js');
 const { getSkillAverage } = require('../helper/skills');
+const BaseCommand = require('./baseCommand.js');
 
-module.exports = {
-    name: 'skills',
-    execute: async (discordClient, message, messageAuthor) => {
-        if (config.ingameCommands.skills) {
-            let { 1: username, 2: profile } = message.split(' ');
+class SkillCommand extends BaseCommand {
 
-            if (!username) username = messageAuthor;
+    constructor() {
+        super('skills')
+    }
 
-            const searchedPlayer = await getPlayer(username, profile).catch((err) => {
-                return minecraftClient.chat(`/gc @${messageAuthor} ${err}`);
-            });
-            const playerProfile = searchedPlayer.memberData;
+    execute = async (message, messageAuthor) => {
+        let { username, profile } = this.getArgs(message, messageAuthor);
 
-            const skills = getSkillAverage(playerProfile, 2);
+        const searchedPlayer = await getPlayer(username, profile)
+        const playerProfile = searchedPlayer.memberData;
 
-            if (skills == 0) {
-                return minecraftClient.chat(`/gc @${messageAuthor}${messageAuthor === username ? "'s" : ` ${username}'s`} skills API is disabled.`);
-            }
-            minecraftClient.chat(`/gc @${messageAuthor}${messageAuthor === username ? "'s" : ` ${username}'s`} skill average is ${skills}.`);
+        const skills = getSkillAverage(playerProfile, 2);
+
+        if (skills == 0) {
+            return this.sendReply(`${username} did not enable their skill API.`);
         }
-    },
-};
+        this.sendReply(`${username} has a skill average of ${skills}.`);
+    }
+}
+
+module.exports = new SkillCommand();

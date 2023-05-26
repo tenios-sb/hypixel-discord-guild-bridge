@@ -1,10 +1,10 @@
-const { getPlayer, toFixed } = require('../helper/functions.js');
+const { getPlayer } = require('../helper/functions.js');
 const BaseCommand = require('./baseCommand.js');
 
-class LevelCommand extends BaseCommand {
+class FairySoulsCommand extends BaseCommand {
 
     constructor() {
-        super('level');
+        super('fairysouls');
     }
 
     execute = async (message, messageAuthor) => {
@@ -13,8 +13,9 @@ class LevelCommand extends BaseCommand {
         const searchedPlayer = await getPlayer(username, profile);
         const playerProfile = searchedPlayer.memberData;
 
-        this.sendReply(`${username} is SkyBlock level ${Number(toFixed((playerProfile.leveling?.experience || 0) / 100, 2))}.`);
+        const souls = playerProfile?.fairy_souls_collected || 0;
+        return this.sendReply(`${username} found ${souls} fairy souls`)
     }
 }
 
-module.exports = new LevelCommand();
+module.exports = new FairySoulsCommand();

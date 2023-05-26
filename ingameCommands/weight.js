@@ -1,28 +1,26 @@
 const config = require('../config.json');
 const { getPlayer, addCommas } = require('../helper/functions.js');
 const { getSenitherWeight, getLilyWeight } = require('../helper/weight.js');
+const BaseCommand = require('./baseCommand.js');
 
-module.exports = {
-    name: 'weight',
-    execute: async (discordClient, message, messageAuthor) => {
-        if (config.ingameCommands.weight) {
-            let { 1: username, 2: profile } = message.split(' ');
+class WeightCommand extends BaseCommand {
 
-            if (!username) username = messageAuthor;
+    constructor() {
+        super('weight')
+    }
 
-            const searchedPlayer = await getPlayer(username, profile).catch((err) => {
-                return minecraftClient.chat(`/gc @${messageAuthor} ${err}`);
-            });
-            const playerProfile = searchedPlayer.memberData;
+    execute = async (message, messageAuthor) => {
+        let { username, profile } = this.getArgs(message, messageAuthor);
 
-            const senitherWeight = getSenitherWeight(playerProfile);
-            const lilyWeight = getLilyWeight(playerProfile);
+        const searchedPlayer = await getPlayer(username, profile);
+        const playerProfile = searchedPlayer.memberData;
 
-            minecraftClient.chat(
-                `/gc @${messageAuthor}${messageAuthor === username ? '' : ` ${username}`} has ${addCommas(
-                    (senitherWeight.total + senitherWeight.totalOverflow).toFixed()
-                )} senither weight and ${addCommas(lilyWeight.total.toFixed())} lily weight.`
-            );
-        }
-    },
+        const senitherWeight = getSenitherWeight(playerProfile);
+        const lilyWeight = getLilyWeight(playerProfile);
+
+        this.sendReply(`${username} has ${addCommas((senitherWeight.total + senitherWeight.totalOverflow).toFixed()
+        )} senither weight and ${addCommas(lilyWeight.total.toFixed())} lily weight.`);
+    }
 };
+
+module.exports = new WeightCommand();
